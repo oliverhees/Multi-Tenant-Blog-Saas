@@ -6,40 +6,67 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { EmptyState } from "../components/dashboard/EmptyState";
-import prisma from "../utils/db";
+import { connectToDatabase } from "../utils/db";
 import { requireUser } from "../utils/requireUser";
 import Image from "next/image";
 import Defaultimage from "@/public/default.png";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import Site, { ISite } from "../models/Site";
+import Post, { IPost } from "../models/Post";
+import { Types } from "mongoose";
 
-async function getData(userId: string) {
-  const [sites, articles] = await Promise.all([
-    prisma.site.findMany({
-      where: {
-        userId: userId,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: 3,
-    }),
-    prisma.post.findMany({
-      where: {
-        userId: userId,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: 3,
-    }),
+type TransformedSite = Omit<ISite, "_id"> & { id: string };
+type TransformedPost = Omit<IPost, "_id"> & { id: string };
+
+type MongoDocument<T> = Omit<T, "_id"> & { _id: Types.ObjectId };
+
+// Define a User type that includes the id property
+type User = {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+};
+
+async function getData(
+  userId: string
+): Promise<{ sites: TransformedSite[]; articles: TransformedPost[] }> {
+  await connectToDatabase();
+  const [sitesResult, articlesResult] = await Promise.all([
+    Site.find({ userId: userId })
+      .sort({ createdAt: -1 })
+      .limit(3)
+      .lean<MongoDocument<ISite>[]>(),
+    Post.find({ userId: userId })
+      .sort({ createdAt: -1 })
+      .limit(3)
+      .lean<MongoDocument<IPost>[]>(),
   ]);
 
-  return { sites, articles };
+  const transformedSites = sitesResult.map((site: MongoDocument<ISite>) => {
+    const { _id, ...rest } = site;
+    return {
+      ...rest,
+      id: _id.toString(),
+    } as TransformedSite;
+  });
+
+  const transformedArticles = articlesResult.map(
+    (article: MongoDocument<IPost>) => {
+      const { _id, ...rest } = article;
+      return {
+        ...rest,
+        id: _id.toString(),
+      } as TransformedPost;
+    }
+  );
+
+  return { sites: transformedSites, articles: transformedArticles };
 }
 
 export default async function DashboardIndexPage() {
-  const user = await requireUser();
+  const user = (await requireUser()) as User; // Cast the result to User type
   const { articles, sites } = await getData(user.id);
   return (
     <div>

@@ -1,10 +1,11 @@
-import NextAuth from "next-auth"
+import NextAuth, { AuthOptions, SessionStrategy } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { connectToDatabase } from "@/app/utils/db"
 import User from "@/app/models/User"
 import bcrypt from "bcryptjs"
+import { JWT } from "next-auth/jwt"
 
-const handler = NextAuth({
+export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -40,16 +41,16 @@ const handler = NextAuth({
     })
   ],
   session: {
-    strategy: "jwt",
+    strategy: "jwt" as SessionStrategy,
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user }: { token: JWT, user: any }) {
       if (user) {
         token.id = user.id
       }
       return token
     },
-    async session({ session, token }) {
+    async session({ session, token }: { session: any, token: JWT }) {
       if (session.user) {
         session.user.id = token.id
       }
@@ -59,6 +60,8 @@ const handler = NextAuth({
   pages: {
     signIn: "/auth/signin",
   },
-})
+}
+
+const handler = NextAuth(authOptions)
 
 export { handler as GET, handler as POST }
