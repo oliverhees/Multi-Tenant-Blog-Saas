@@ -8,7 +8,6 @@ import {
 import { EmptyState } from "../components/dashboard/EmptyState";
 import prisma from "../utils/db";
 import { requireUser } from "../utils/requireUser";
-import SitesRoute from "./sites/page";
 import Image from "next/image";
 import Defaultimage from "@/public/default.png";
 import { Button } from "@/components/ui/button";
@@ -75,8 +74,8 @@ export default async function DashboardIndexPage() {
         </div>
       ) : (
         <EmptyState
-          title="You dont have any sites created"
-          description="You currently dont have any Sites. Please create some so that you can see them right here."
+          title="You don't have any sites created"
+          description="You currently don't have any Sites. Please create some so that you can see them right here."
           href="/dashboard/sites/new"
           buttonText="Create Site"
         />
@@ -113,8 +112,8 @@ export default async function DashboardIndexPage() {
         </div>
       ) : (
         <EmptyState
-          title="You dont have any articles created"
-          description="Your currently dont have any articles created. Please create some so that you can see them right here"
+          title="You don't have any articles created"
+          description="You currently don't have any articles created. Please create some so that you can see them right here"
           buttonText="Create Article"
           href="/dashboard/sites"
         />

@@ -1,13 +1,13 @@
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "../api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 
 export const requireUser = async () => {
-  const { getUser } = getKindeServerSession();
-  const user = await getUser();
+  const session = await getServerSession(authOptions);
 
-  if (!user) {
-    return redirect("/api/auth/login");
+  if (!session || !session.user) {
+    return redirect("/auth/signin");
   }
 
-  return user;
+  return session.user;
 };

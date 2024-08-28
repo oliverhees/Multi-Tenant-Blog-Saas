@@ -1,10 +1,11 @@
-import { withAuth } from "@kinde-oss/kinde-auth-nextjs/middleware";
+import { withAuth } from "next-auth/middleware"
 
 export default withAuth({
-  loginPage: "/api/auth/login",
-  isReturnToCurrentPage: true,
-});
+  pages: {
+    signIn: "/auth/signin",
+  },
+})
 
 export const config = {
   matcher: ["/dashboard/:path*"],
-};
+}
